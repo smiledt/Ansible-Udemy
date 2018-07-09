@@ -9,13 +9,34 @@
         - libapache2-mod-wsgi
         - python-pip
         - python-virtualenv
+        - python-mysqldb
         
     - name: Ensure Apache2 Started
       service: name=apache2 state=started enabled=yes
       
-    - name: ensure mod_wsgi enabled
+    - name: Ensure Mod_wsgi Enabled
       apache2_module: state=present name=wsgi
-      notify: restart apache2
+      notify: Restart Apache2
+      
+    - name: Copy Demo App Source
+      copy: src=../demo/app/ dest=/var/www/demo mode=0755
+      notify: Restart Apache2
+      
+    - name: Copy Apache Virtual Host Config
+      copy: src=../demo/demo.conf dest=/etc/apache2/sites-available mode=0755
+      notify: Restart Apache2
+      
+    - name: Set Up Python Virtual Environment
+      pip: requirements=/var/www/demo/requirements.txt virtualenv=/var/www/demo/.venv
+      notify: Restart Apache2
+      
+    - name: De-activate Default Apache Site
+      file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
+      notify: Restart Apache2
+      
+    - name: Activate Demo Apache Site
+      file: src=/etc/apache2/sites-available/demo.conf dest=/etc/apache2/sites-enabled/demo.conf state=link
+      notify: Restart Apache2
       
   handlers:
     - name: Restart Apache2
