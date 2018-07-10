@@ -22,7 +22,7 @@
     - name: Create Demo User
       mysql_user: name=demo password=demo priv=demo.*:ALL host='%' state=present
 
-      handlers: 
-        - name: Restart MySql
-          service: name=mysql state=restarted
+  handlers: 
+    - name: Restart MySql
+      service: name=mysql state=restarted
         

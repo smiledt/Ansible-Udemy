@@ -1,0 +1,69 @@
+---
+- hosts: loadbalancer
+  become: true
+  tasks: 
+    - name: Check LoadBalancer Nginx Status
+      command: service nginx status
+      
+    - name: Verify Nginx is listening on 80
+      wait_for: port=80 timeout=1
+      
+- hosts: webserver
+  become: true
+  tasks: 
+    - name: Check Webserver Apache2 Status
+      command: service apache2 status
+      
+    - name: Verify Apache2 is listening on 80
+      wait_for: port=80 timeout=1
+
+- hosts: database
+  become: true
+  tasks: 
+    - name: Check Database MySql-Server Status
+      command: service mysql status
+      
+    - name: Verify MySql-Server is listening on 3306
+      wait_for: port=3306 timeout=1
+      
+- hosts: control
+  tasks: 
+    - name: Verify End-to-end Responses
+      uri: url=http://{{item}} return_content=yes
+      with_items: "{{ groups.loadbalancer }}"
+      register: lb_index
+      
+    - fail: msg="Index failed to return content"
+      when: "'Hello, from sunny' not in item.content"
+      with_items: "{{lb_index.results}}"
+      
+    - name: Verify End-to-end Database Response
+      uri: url=http://{{item}}/db return_content=yes
+      with_items: "{{ groups.loadbalancer }}"
+      register: lb_db
+      
+    - fail: msg="Database failed to return content"
+      when: "'Database Connected from' not in item.content"
+      with_items: "{{lb_db.results}}"
+
+      
+- hosts: loadbalancer
+  tasks: 
+    - name: Verify Backend Response
+      uri: url=http://{{item}} return_content=yes
+      with_items: "{{ groups.webserver }}"
+      register: app_index
+      
+    - fail: msg="Index failed to return content"
+      when: "'Hello, from sunny ' ~ item.item not in item.content"
+      with_items: "{{app_index.results}}"
+    
+    - name: Verify Backend Database Response
+      uri: url=http://{{item}}/db return_content=yes
+      with_items: "{{ groups.webserver }}"
+      register: app_db
+      
+    - fail: msg="Index failed to return content"
+      when: "'Database Connected from ' ~ item.item not in item.content"
+      with_items: "{{app_db.results}}"
+      
