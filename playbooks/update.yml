@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+  tasks:  
+    - name: Run apt update if the last one was more than 3600 seconds ago.
+      apt: update_cache=yes cache_valid_time=3600
+      
+    - name: Run apt upgrade
+      apt: name="*" state=latest
+  
