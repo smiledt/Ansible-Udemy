@@ -1,0 +1,10 @@
+---
+#Troubleshooting playbook that prints out the user ansible is executing as
+- hosts: test
+  #become: true
+  tasks:
+    - name: Print the damn user already
+      command: whoami
+      register: whoareyou
+      
+    - debug: var=whoareyou

@@ -1,0 +1,20 @@
+---
+#This playbook sets up the ansible configuration management user
+
+- hosts: test
+  remote_user: vagrant
+  become: true
+  vars:
+    user_name: ansible
+    user_pass: $6$6QXQru6xw$BoaAY81JEiZphoijwgMayOjDRcO6TV0J/3frh11XZusrwpqK2Jo1R6sKuIxzyNE9fclaSNLkSSnH7f0FsJPy7.
+  tasks:
+    - name: Add management user
+      user: name={{ user_name }} password={{ user_pass }} groups=sudo append=yes 
+            comment="Ansible management execution user" state=present shell=/bin/bash 
+        
+    - name: Ensure that ansible has sudo privileges
+      lineinfile: dest=/etc/sudoers.d/ansible create=yes state=present 
+                  line="{{ user_name }} ALL=(ALL) NOPASSWD:ALL"
+              
+    - name: Set authorized SSH key for user ansible
+      authorized_key: user=ansible state=present key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
