@@ -1,0 +1,7 @@
+--- 
+# Main site yaml file
+
+- include: playbooks/control.yml
+- include: playbooks/database.yml
+- include: playbooks/webserver.yml
+- include: playbooks/loadbalancer.yml

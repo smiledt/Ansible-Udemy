@@ -9,19 +9,23 @@
      
 - name: Configure nginx site
   template: src=nginx.conf.j2 dest=/etc/nginx/sites-available/{{ item.key }} mode=0644
-  loop: "{{ sites|dict2items }}"
+  with_dict: "{{ sites }}"
+###  loop: "{{ sites|dict2items }}"
   notify: Restart Nginx
       
 - name: Get active sites
   shell: ls -1 /etc/nginx/sites-enabled
   register: active
-  
-- debug: var=sites  
-- debug: var=active     
+
+
+##### For Debugging the sites loop #####  
+#- debug: var=sites  
+#- debug: var=active
+#- debug: var=active.stdout_lines  
   
 - name: De-activate unwanted nginx sites
   file: path=/etc/nginx/sites-enabled/{{ item }} state=absent
-  with_items: active.stdout_lines
+  with_items: "{{ active.stdout_lines }}"
   when: item not in sites 
   notify: Restart Nginx
       
