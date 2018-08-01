@@ -11,6 +11,10 @@
 - name: Copy Demo App Source
   copy: src=demo/app/ dest=/var/www/demo mode=0755
   notify: Restart Apache2
+ 
+- name: Copy demo.wsgi
+  template: src=demo.wsgi.j2 dest=/var/www/demo/demo.wsgi mode=0755
+  notify: Restart Apache2
   
 - name: Copy Apache Virtual Host Config
   copy: src=demo/demo.conf dest=/etc/apache2/sites-available mode=0755
